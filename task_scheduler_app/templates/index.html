@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>작업 스케줄러</title>
+    <style> /* Basic styling for flash messages */
+        .flash { padding: 10px; margin-bottom: 10px; border: 1px solid transparent; border-radius: 4px; }
+        .flash.success { color: #3c763d; background-color: #dff0d8; border-color: #d6e9c6; }
+        .flash.danger { color: #a94442; background-color: #f2dede; border-color: #ebccd1; }
+        .flash.warning { color: #8a6d3b; background-color: #fcf8e3; border-color: #faebcc; }
+    </style>
+</head>
+<body>
+    <h1>나의 작업 템플릿</h1>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% if session.email %}
+        <p>로그인됨: {{ session.email }} (<a href="{{ url_for('logout') }}">로그아웃</a>)</p>
+        <p><a href="{{ url_for('new_template') }}">새 템플릿 만들기</a></p>
+        <h2>템플릿 목록</h2>
+        {% if templates %}
+            <ul>
+                {% for tpl in templates %}
+                    <li>
+                        <a href="{{ url_for('view_template', template_id=tpl.id) }}">{{ tpl.name }}</a>
+                        ({{ tpl.description or '설명 없음' }})
+                        <form method="POST" action="{{ url_for('delete_template_route', template_id=tpl.id) }}" style="display:inline;">
+                            <button type="submit" onclick="return confirm('정말로 이 템플릿을 삭제하시겠습니까?');">삭제</button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>생성된 템플릿이 없습니다.</p>
+        {% endif %}
+    {% else %}
+        {# This part should ideally not be reached if route '/' redirects to login #}
+        <p>로그인이 필요합니다. <a href="{{ url_for('login') }}">Google 계정으로 로그인</a></p>
+    {% endif %}
+</body>
+</html>
