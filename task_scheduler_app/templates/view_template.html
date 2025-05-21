@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>템플릿: {{ template.name }}</title>
+    <style> /* Basic styling for flash messages */
+        .flash { padding: 10px; margin-bottom: 10px; border: 1px solid transparent; border-radius: 4px; }
+        .flash.success { color: #3c763d; background-color: #dff0d8; border-color: #d6e9c6; }
+        .flash.danger { color: #a94442; background-color: #f2dede; border-color: #ebccd1; }
+        .flash.warning { color: #8a6d3b; background-color: #fcf8e3; border-color: #faebcc; }
+    </style>
+    <script>
+        function handleScheduleTypeChange(selectElement) {
+            // Find the closest ancestor form to scope the query selectors
+            const ruleForm = selectElement.closest('form'); 
+            const dayOfWeekField = ruleForm.querySelector('.day_of_week_field');
+            const offsetDaysField = ruleForm.querySelector('.offset_days_field');
+            
+            // Ensure fields are found before trying to set style
+            if (dayOfWeekField) dayOfWeekField.style.display = 'none';
+            if (offsetDaysField) offsetDaysField.style.display = 'none';
+
+            if (selectElement.value === 'fixed_day') {
+                if (dayOfWeekField) dayOfWeekField.style.display = 'block';
+            } else if (selectElement.value === 'offset') {
+                if (offsetDaysField) offsetDaysField.style.display = 'block';
+            }
+        }
+
+        // Call on page load for existing forms if needed, or ensure initial state is correct via HTML/CSS
+        // For this form, it's for new rules, so initial state is fine.
+    </script>
+</head>
+<body>
+    <h1>템플릿: {{ template.name }}</h1>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+    <p><strong>설명:</strong> {{ template.description or '없음' }}</p>
+
+    <p><a href="{{ url_for('apply_template', template_id=template.id) }}">
+        <button type="button">이 템플릿을 Google Calendar에 적용하기</button>
+    </a></p>
+
+    <h2>이 템플릿의 작업 규칙</h2>
+    {% if rules %}
+        <ul>
+            {% for rule in rules %}
+                <li>
+                    {{ rule.task_name }} - 
+                    {% if rule.schedule_type == 'fixed_day' %}
+                        매주 {{ ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일'][rule.day_of_week-1] }}
+                    {% elif rule.schedule_type == 'offset' %}
+                        시작일로부터 {{ rule.offset_days }}일 후
+                    {% endif %}
+                    <a href="{{ url_for('edit_task_rule_form_route', rule_id=rule.id) }}" class="button-link" style="margin-left: 10px; text-decoration: none; padding: 2px 5px; background-color: #f0f0f0; color: #333; border: 1px solid #ccc; border-radius: 3px;">수정</a>
+                    <form method="POST" action="{{ url_for('delete_rule_route', rule_id=rule.id) }}" style="display:inline; margin-left: 5px;">
+                        <button type="submit" onclick="return confirm('정말로 이 규칙을 삭제하시겠습니까?');">삭제</button>
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>아직 추가된 작업 규칙이 없습니다.</p>
+    {% endif %}
+
+    <h2>{{ '규칙 수정' if rule_to_edit else '새 작업 규칙 추가' }}</h2>
+    <form method="POST" action="{{ form_action_url | default(url_for('view_template', template_id=template.id)) }}">
+        <p>
+            <label for="task_name">작업 이름:</label><br>
+            <input type="text" id="task_name" name="task_name" value="{{ rule_to_edit.task_name if rule_to_edit else '' }}" required>
+        </p>
+        <p>
+            <label for="schedule_type">스케줄 타입:</label><br>
+            <select id="schedule_type" name="schedule_type" required onchange="handleScheduleTypeChange(this)">
+                <option value="" {% if not rule_to_edit %}selected{% endif %}>선택하세요...</option>
+                <option value="fixed_day" {% if rule_to_edit and rule_to_edit.schedule_type == 'fixed_day' %}selected{% endif %}>특정 요일</option>
+                <option value="offset" {% if rule_to_edit and rule_to_edit.schedule_type == 'offset' %}selected{% endif %}>시작일로부터 오프셋</option>
+            </select>
+        </p>
+        <div class="day_of_week_field" style="display:none;">
+            <label for="day_of_week">요일:</label><br>
+            <select id="day_of_week" name="day_of_week">
+                {# Ensure default or pre-selected value for edit mode #}
+                {% set current_day_of_week = rule_to_edit.day_of_week if rule_to_edit else 1 %}
+                {% for i in range(1, 8) %}
+                <option value="{{ i }}" {% if current_day_of_week == i %}selected{% endif %}>{{ ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일'][i-1] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="offset_days_field" style="display:none;">
+            <label for="offset_days">오프셋 일수 (숫자만 입력):</label><br>
+            <input type="number" id="offset_days" name="offset_days" value="{{ rule_to_edit.offset_days if rule_to_edit and rule_to_edit.offset_days is not none else '' }}" min="0">
+        </div>
+        <p>
+            <button type="submit">{{ form_submit_button_text | default('규칙 추가') }}</button>
+            {% if rule_to_edit %}
+            <a href="{{ url_for('view_template', template_id=template.id) }}" style="margin-left:10px;">수정 취소</a>
+            {% endif %}
+        </p>
+    </form>
+    <p><a href="{{ url_for('index') }}">템플릿 목록으로 돌아가기</a></p>
+
+    <script>
+        // Ensure handleScheduleTypeChange is defined as before
+        function handleScheduleTypeChange(selectElement) {
+            const ruleForm = selectElement.closest('form'); 
+            const dayOfWeekField = ruleForm.querySelector('.day_of_week_field');
+            const offsetDaysField = ruleForm.querySelector('.offset_days_field');
+            
+            if (dayOfWeekField) dayOfWeekField.style.display = 'none';
+            if (offsetDaysField) offsetDaysField.style.display = 'none';
+
+            if (selectElement.value === 'fixed_day') {
+                if (dayOfWeekField) dayOfWeekField.style.display = 'block';
+            } else if (selectElement.value === 'offset') {
+                if (offsetDaysField) offsetDaysField.style.display = 'block';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const scheduleTypeSelect = document.getElementById('schedule_type');
+            if (scheduleTypeSelect && scheduleTypeSelect.value) { // If a value is pre-selected (i.e., editing)
+                handleScheduleTypeChange(scheduleTypeSelect);
+            }
+        });
+    </script>
+</body>
+</html>

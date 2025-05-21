@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ template.name }} 템플릿 적용</title>
+    <style> /* Basic styling for flash messages */
+        .flash { padding: 10px; margin-bottom: 10px; border: 1px solid transparent; border-radius: 4px; }
+        .flash.success { color: #3c763d; background-color: #dff0d8; border-color: #d6e9c6; }
+        .flash.danger { color: #a94442; background-color: #f2dede; border-color: #ebccd1; }
+        .flash.warning { color: #8a6d3b; background-color: #fcf8e3; border-color: #faebcc; }
+        .flash.info { color: #31708f; background-color: #d9edf7; border-color: #bce8f1; }
+    </style>
+</head>
+<body>
+    <h1>{{ template.name }} 템플릿 적용</h1>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+        <p>
+            <label for="start_date">템플릿 시작 날짜:</label><br>
+            <input type="date" id="start_date" name="start_date" required>
+        </p>
+        <p><button type="submit">캘린더에 적용</button></p>
+    </form>
+    <p><a href="{{ url_for('view_template', template_id=template.id) }}">템플릿으로 돌아가기</a></p>
+</body>
+</html>

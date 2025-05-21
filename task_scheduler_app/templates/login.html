@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>로그인</title>
+    <style> /* Basic styling for flash messages - can be moved to a shared CSS */
+        .flash { padding: 10px; margin-bottom: 10px; border: 1px solid transparent; border-radius: 4px; }
+        .flash.success { color: #3c763d; background-color: #dff0d8; border-color: #d6e9c6; }
+        .flash.danger { color: #a94442; background-color: #f2dede; border-color: #ebccd1; }
+        .flash.warning { color: #8a6d3b; background-color: #fcf8e3; border-color: #faebcc; }
+    </style>
+</head>
+<body>
+    <h2>계속하려면 로그인하세요</h2>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+    {# Ensure app.config is accessible in template if directly checking GOOGLE_CLIENT_ID, or handle logic in route #}
+    {# For simplicity, assume GOOGLE_CLIENT_ID/SECRET check is handled or not critical for button display #}
+    <a href="{{ url_for('login') }}">
+        <button>Google 계정으로 로그인</button>
+    </a>
+</body>
+</html>
