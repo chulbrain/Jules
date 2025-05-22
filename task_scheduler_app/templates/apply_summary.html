@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>템플릿 적용 결과</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        .result-item { border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 4px; }
+        .result-item p { margin: 5px 0; }
+        .result-item strong { color: #333; }
+        .status-success { background-color: #e6ffed; border-left: 5px solid #4CAF50; }
+        .status-skipped { background-color: #fff3cd; border-left: 5px solid #ffeeba; }
+        .status-failed { background-color: #f8d7da; border-left: 5px solid #f5c6cb; }
+        .nav-buttons a { margin-right: 10px; text-decoration: none; padding: 8px 15px; background-color: #007bff; color: white; border-radius: 4px;}
+        .nav-buttons a:hover { background-color: #0056b3;}
+    </style>
+</head>
+<body>
+    <h1>템플릿 적용 결과: {{ template.name if template else '알 수 없는 템플릿' }}</h1>
+    <p><strong>적용된 시작 날짜:</strong> {{ start_date_applied }}</p>
+
+    {% if apply_results %}
+        <h2>처리된 작업 상세:</h2>
+        {% for result in apply_results %}
+            <div class="result-item 
+                {% if '생성됨' in result.status_message or 'Created' in result.status_message %}status-success
+                {% elif '건너뛰었습니다' in result.status_message or 'Skipped' in result.status_message or '오류로 건너뜁니다' in result.status_message or '건너뜁니다' in result.status_message %}status-skipped
+                {% elif '오류' in result.status_message or 'Failed' in result.status_message or '실패' in result.status_message %}status-failed
+                {% endif %}">
+                <p><strong>작업명:</strong> {{ result.task_name }}</p>
+                <p><strong>예정 날짜:</strong> {{ result.target_date_iso if result.target_date_iso else 'N/A' }}</p>
+                <p><strong>유형:</strong> {{ 'Google Calendar 이벤트' if result.type == 'calendar' else 'Google Task' }}</p>
+                <p><strong>상태:</strong> {{ result.status_message }}</p>
+                {% if result.type == 'task' and result.task_list_id_used %}
+                    <p><strong>대상 Task 목록 ID:</strong> {{ result.task_list_id_used }}</p>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>표시할 결과가 없습니다.</p>
+    {% endif %}
+
+    <div class="nav-buttons" style="margin-top: 20px;">
+        {% if template %}
+        <a href="{{ url_for('view_template', template_id=original_template_id) }}">템플릿으로 돌아가기</a>
+        {% endif %}
+        <a href="{{ url_for('index') }}">템플릿 목록으로</a>
+    </div>
+</body>
+</html>

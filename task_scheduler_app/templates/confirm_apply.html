@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>작업 적용 확인</title>
+    <style>
+        /* Basic styling for flash messages and layout */
+        .flash { padding: 10px; margin-bottom: 10px; border: 1px solid transparent; border-radius: 4px; }
+        .flash.danger { color: #a94442; background-color: #f2dede; border-color: #ebccd1; }
+        .flash.warning { color: #8a6d3b; background-color: #fcf8e3; border-color: #faebcc; }
+        .flash.info { color: #31708f; background-color: #d9edf7; border-color: #bce8f1; }
+        .flash.success { color: #3c763d; background-color: #dff0d8; border-color: #d6e9c6; }
+        .action-item { border: 1px solid #eee; padding: 10px; margin-bottom: 10px; }
+        .action-item h4 { margin-top: 0; }
+        .conflict { background-color: #fff3cd; border-left: 5px solid #ffeeba; }
+        .error-item { background-color: #f8d7da; border-left: 5px solid #f5c6cb; }
+        .conflict-resolution label { margin-right: 15px; }
+    </style>
+</head>
+<body>
+    <h1>'{{ template.name }}' 템플릿 적용 확인</h1>
+    <p><strong>시작 날짜:</strong> {{ start_date_str }}</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('confirm_apply_route', template_id=template.id) }}">
+        
+        {% if user_task_lists and user_task_lists|length > 0 %}
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label for="selected_task_list_id"><strong>Google Tasks 목록 선택:</strong></label>
+                <select name="selected_task_list_id" id="selected_task_list_id" class="form-control">
+                    {% for task_list in user_task_lists %}
+                        <option value="{{ task_list.id }}">{{ task_list.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        {% else %}
+            <p><em>Google Task 목록을 불러올 수 없거나 목록이 없습니다. 작업은 기본 목록('@default')에 생성됩니다.</em></p>
+        {% endif %}
+
+        <h2>생성될 작업 목록:</h2>
+        {% if proposed_actions %}
+            {% for action in proposed_actions %}
+                <div class="action-item 
+                    {% if action.conflict_details and action.type == 'calendar' %}conflict{% endif %}
+                    {% if action.action == 'skip_invalid_rule' or action.action == 'skip_service_unavailable' or action.error_message %}error-item{% endif %}">
+                    
+                    <h4>{{ action.task_name }}</h4>
+                    <p>
+                        <strong>대상 날짜:</strong> {{ action.target_date_iso if action.target_date_iso else '계산 불가' }}<br>
+                        <strong>유형:</strong> {{ 'Google Calendar 이벤트' if action.type == 'calendar' else 'Google Task' }}
+                    </p>
+
+                    {% if action.error_message %}
+                        <p><strong>오류:</strong> {{ action.error_message }} 
+                            {% if action.action == 'skip_invalid_rule' %} (규칙 문제로 건너뜁니다)
+                            {% elif action.action == 'skip_service_unavailable' %} (서비스 사용 불가로 건너뜁니다)
+                            {% endif %}
+                        </p>
+                    {% endif %}
+
+                    {% if action.type == 'calendar' and action.conflict_details and not action.error_message and action.action != 'skip_service_unavailable' %}
+                        <div class="conflict-resolution">
+                            <p><strong>주의:</strong> 이 날짜에 같은 이름의 Calendar 이벤트가 이미 존재합니다. (기존 이벤트: {{ action.conflict_details.summary }})</p>
+                            <label>
+                                <input type="radio" name="calendar_conflict_resolution_{{ action.rule_id }}" value="create" checked> 새로 만들기 (중복 가능)
+                            </label>
+                            <label>
+                                <input type="radio" name="calendar_conflict_resolution_{{ action.rule_id }}" value="skip"> 건너뛰기
+                            </label>
+                        </div>
+                    {% elif action.type == 'calendar' and not action.conflict_details and not action.error_message and action.action == 'create' %}
+                        <p><em>(Calendar에 새로 생성될 예정)</em></p>
+                    {% endif %}
+
+                    {% if action.type == 'task' and not action.error_message and action.action == 'create' %}
+                         <p><em>(Tasks에 새로 생성될 예정)</em></p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>제안된 작업이 없습니다.</p>
+        {% endif %}
+
+        {% if proposed_actions %} {# Only show buttons if there are actions #}
+            <p>
+                <button type="submit">확인 및 생성</button>
+                <a href="{{ url_for('cancel_apply_route', template_id=template.id) }}" style="text-decoration: none;">
+                    <button type="button">취소</button>
+                </a>
+            </p>
+        {% else %}
+             <p><a href="{{ url_for('view_template', template_id=template.id) }}">템플릿으로 돌아가기</a></p>
+        {% endif %}
+    </form>
+</body>
+</html>
