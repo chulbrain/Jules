@@ -1,60 +1,63 @@
-@import url('https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&family=Poor+Story&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&family=Poor+Story&family=Noto+Sans+KR:wght@400;700&display=swap');
 
 body {
-    font-family: 'Poor Story', cursive;
+    font-family: 'Noto Sans KR', 'Poor Story', sans-serif; /* Noto Sans KR를 기본으로, Poor Story를 대체, 마지막으로 sans-serif */
     background-color: #f0f8ff; /* AliceBlue */
     color: #333;
     margin: 0;
     padding: 20px;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start; /* 콘텐츠가 길어질 경우 위에서부터 정렬 */
     min-height: 100vh;
     box-sizing: border-box;
+    font-size: 16px; /* 기본 폰트 크기 설정 */
+    line-height: 1.6; /* 줄 간격 개선 */
 }
 
 .container {
     background-color: #fff;
-    padding: 20px 40px;
+    padding: 25px 45px; /* 패딩 증가 */
     border-radius: 20px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
     width: 100%;
-    max-width: 800px;
+    max-width: 850px; /* 최대 너비 약간 증가 */
     text-align: center;
 }
 
 header h1 {
     font-family: 'Nanum Pen Script', cursive;
-    font-size: 3em;
+    font-size: 3.5em; /* 크기 증가 */
     color: #ff6347; /* Tomato */
-    margin-bottom: 10px;
+    margin-bottom: 15px; /* 마진 증가 */
     text-shadow: 2px 2px #ffd700; /* Gold */
 }
 
 .user-stats {
     display: flex;
     justify-content: space-around;
-    margin-bottom: 20px;
+    margin-bottom: 25px; /* 마진 증가 */
     background-color: #fffacd; /* LemonChiffon */
-    padding: 10px;
+    padding: 15px; /* 패딩 증가 */
     border-radius: 10px;
     border: 2px dashed #ffb6c1; /* LightPink */
 }
 
 .user-stats p {
     margin: 5px 0;
-    font-size: 1.2em;
+    font-size: 1.3em; /* 크기 증가 */
     color: #4682b4; /* SteelBlue */
 }
 
 .selection-area h2 {
     color: #32cd32; /* LimeGreen */
-    font-size: 1.8em;
+    font-size: 2em; /* 크기 증가 */
+    margin-bottom: 15px;
 }
 
 .set-selector {
-    margin-bottom: 30px;
-    padding: 15px;
+    margin-bottom: 35px; /* 마진 증가 */
+    padding: 20px; /* 패딩 증가 */
     background-color: #e0ffff; /* LightCyan */
     border-radius: 10px;
     border: 2px solid #afeeee; /* PaleTurquoise */
@@ -62,16 +65,16 @@ header h1 {
 
 .set-selector label {
     margin: 0 10px;
-    font-size: 1.1em;
+    font-size: 1.2em; /* 크기 증가 */
 }
 
 .set-selector select, .set-selector button {
-    padding: 10px 15px;
-    margin: 5px;
+    padding: 12px 18px; /* 패딩 증가 */
+    margin: 8px 5px; /* 마진 조정 */
     border-radius: 8px;
     border: 1px solid #ccc;
-    font-family: 'Poor Story', cursive;
-    font-size: 1em;
+    font-family: 'Noto Sans KR', 'Poor Story', sans-serif; /* 일관된 폰트 적용 */
+    font-size: 1.1em; /* 크기 증가 */
 }
 
 .set-selector button {
@@ -86,8 +89,8 @@ header h1 {
 }
 
 .flashcard-area {
-    margin-top: 20px;
-    padding: 20px;
+    margin-top: 25px; /* 마진 증가 */
+    padding: 25px; /* 패딩 증가 */
     background-color: #fff8dc; /* Cornsilk */
     border-radius: 15px;
     box-shadow: 0 5px 15px rgba(0,0,0,0.05);
@@ -95,40 +98,44 @@ header h1 {
 
 .flashcard {
     background-color: #ffffff;
-    padding: 25px;
+    padding: 30px; /* 패딩 증가 */
     border-radius: 10px;
     border: 3px dashed #ffb6c1; /* LightPink */
 }
 
 .word-meaning {
-    font-size: 1.8em;
+    font-size: 2em; /* 크기 증가 */
+    font-weight: bold; /* 가독성을 위해 bold 처리 */
     color: #20b2aa; /* LightSeaGreen */
-    margin-bottom: 20px;
-    padding: 15px;
+    margin-bottom: 25px; /* 마진 증가 */
+    padding: 20px; /* 패딩 증가 */
     background-color: #f5fffa; /* MintCream */
     border-radius: 8px;
-    min-height: 50px;
+    min-height: 60px; /* 최소 높이 증가 */
     display: flex;
     justify-content: center;
     align-items: center;
+    line-height: 1.4; /* 단어 뜻이 길 경우 줄간격 확보 */
 }
 
 #spell-input {
-    width: calc(100% - 40px);
-    padding: 12px;
-    margin-bottom: 20px;
+    width: calc(100% - 44px); /* 패딩 고려하여 조정 */
+    padding: 15px; /* 패딩 증가 */
+    margin-bottom: 25px; /* 마진 증가 */
     border: 2px solid #add8e6; /* LightBlue */
     border-radius: 8px;
-    font-size: 1.2em;
+    font-size: 1.4em; /* 크기 증가 */
     text-align: center;
+    font-family: 'Noto Sans KR', sans-serif; /* 입력 필드도 가독성 좋은 폰트로 */
 }
 
 .buttons button {
-    padding: 10px 20px;
-    margin: 5px;
+    padding: 12px 22px; /* 패딩 증가 */
+    margin: 8px; /* 마진 증가 */
     border: none;
     border-radius: 8px;
-    font-size: 1em;
+    font-size: 1.1em; /* 크기 증가 */
+    font-weight: bold;
     cursor: pointer;
     transition: transform 0.2s ease;
 }
@@ -153,10 +160,11 @@ header h1 {
 }
 
 #feedback-text {
-    margin-top: 15px;
-    font-size: 1.2em;
+    margin-top: 20px; /* 마진 증가 */
+    font-size: 1.3em; /* 크기 증가 */
     font-weight: bold;
-    min-height: 20px;
+    min-height: 25px; /* 최소 높이 증가 */
+    line-height: 1.5;
 }
 
 .feedback-correct {
@@ -168,15 +176,16 @@ header h1 {
 }
 
 .progress-area {
-    margin-top: 30px;
-    padding: 15px;
+    margin-top: 35px; /* 마진 증가 */
+    padding: 20px; /* 패딩 증가 */
     background-color: #f5f5f5; /* WhiteSmoke */
     border-radius: 10px;
 }
 
 .progress-area h2 {
     color: #8a2be2; /* BlueViolet */
-    font-size: 1.5em;
+    font-size: 1.7em; /* 크기 증가 */
+    margin-bottom: 10px;
 }
 
 .progress-bar-container {
@@ -184,7 +193,7 @@ header h1 {
     background-color: #e0e0e0; /* Light gray */
     border-radius: 10px;
     margin-top: 10px;
-    height: 25px;
+    height: 30px; /* 높이 증가 */
 }
 
 #progress-bar {
@@ -197,32 +206,35 @@ header h1 {
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 0.9em;
+    font-size: 1em; /* 크기 증가 */
+    font-weight: bold;
 }
 
 .history-area {
-    margin-top: 30px;
-    padding: 15px;
+    margin-top: 35px; /* 마진 증가 */
+    padding: 20px; /* 패딩 증가 */
     background-color: #fffaf0; /* FloralWhite */
     border-radius: 10px;
 }
 
 .history-area h2 {
     color: #d2691e; /* Chocolate */
-    font-size: 1.5em;
+    font-size: 1.7em; /* 크기 증가 */
+    margin-bottom: 10px;
 }
 
 #history-list {
     list-style-type: none;
     padding: 0;
-    max-height: 200px;
+    max-height: 220px; /* 최대 높이 증가 */
     overflow-y: auto;
 }
 
 #history-list li {
-    padding: 8px;
+    padding: 10px; /* 패딩 증가 */
     border-bottom: 1px solid #eee;
-    font-size: 1em;
+    font-size: 1.1em; /* 크기 증가 */
+    text-align: left; /* 좌측 정렬 */
 }
 
 #history-list li:last-child {
@@ -238,8 +250,8 @@ header h1 {
 }
 
 .review-area {
-    margin-top: 30px;
-    padding: 20px;
+    margin-top: 35px; /* 마진 증가 */
+    padding: 25px; /* 패딩 증가 */
     background-color: #fffacd; /* LemonChiffon */
     border-radius: 15px;
     box-shadow: 0 5px 15px rgba(0,0,0,0.05);
@@ -247,13 +259,14 @@ header h1 {
 
 .review-area h2 {
     color: #ff4500; /* OrangeRed */
-    font-size: 1.8em;
+    font-size: 2em; /* 크기 증가 */
+    margin-bottom: 15px;
 }
 
 .review-flashcard {
     /* Styles similar to .flashcard but can be tweaked for review context */
     background-color: #ffffff;
-    padding: 25px;
+    padding: 30px; /* 패딩 증가 */
     border-radius: 10px;
     border: 3px dashed #ff8c00; /* DarkOrange */
 }
@@ -281,39 +294,65 @@ header h1 {
 
 
 footer {
-    margin-top: 40px;
-    font-size: 0.9em;
+    margin-top: 45px; /* 마진 증가 */
+    font-size: 1em; /* 크기 증가 */
     color: #777;
 }
 
 /* Responsive adjustments */
 @media (max-width: 600px) {
+    body {
+        padding: 10px; /* 모바일 패딩 조정 */
+        font-size: 14px; /* 모바일 기본 폰트 크기 */
+    }
     .container {
-        padding: 15px;
+        padding: 15px 20px; /* 모바일 컨테이너 패딩 */
     }
     header h1 {
-        font-size: 2.2em;
+        font-size: 2.8em; /* 모바일 헤더 크기 */
     }
-    .user-stats {
-        flex-direction: column;
-        align-items: center;
+    .user-stats p {
+        font-size: 1.1em;
     }
-    .set-selector {
-        display: flex;
-        flex-direction: column;
-        align-items: stretch;
+    .selection-area h2 {
+        font-size: 1.6em;
     }
-    .set-selector select, .set-selector button, .set-selector label {
-        margin: 8px 0;
+    .set-selector label {
+        font-size: 1.1em;
+    }
+    .set-selector select, .set-selector button {
+        font-size: 1em;
+        padding: 10px 12px;
+    }
+
+    .word-meaning {
+        font-size: 1.6em; /* 모바일 단어 뜻 크기 */
+        min-height: 50px;
+        padding: 15px;
+    }
+    #spell-input {
+        font-size: 1.2em; /* 모바일 입력 필드 크기 */
+        padding: 12px;
     }
     .buttons button {
         padding: 10px 15px;
-        font-size: 0.9em;
+        font-size: 1em;
     }
-    .word-meaning {
-        font-size: 1.5em;
-    }
-    #spell-input {
+    #feedback-text {
         font-size: 1.1em;
+    }
+    .progress-area h2, .history-area h2, .review-area h2 {
+        font-size: 1.4em;
+    }
+    #progress-bar {
+        font-size: 0.9em;
+        height: 25px;
+    }
+    #history-list li {
+        font-size: 1em;
+        padding: 8px;
+    }
+    footer {
+        font-size: 0.9em;
     }
 }

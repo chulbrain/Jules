@@ -1064,15 +1064,19 @@ function parseVocaData(data) {
             const reflectMatch = line.match(/Reflect 3 (Unit \d+) Reading (\d+)/);
             if (reflectMatch) {
                 currentCategory = `${reflectMatch[1]}-R${reflectMatch[2]}`; // e.g., Unit 5-R2
+                if (!parsedData.reflect[currentCategory]) {
+                    parsedData.reflect[currentCategory] = [];
+                }
             } else {
-                currentCategory = line; // Fallback if format is different
+                // If the line starts with "Reflect 3" but doesn't match the expected format,
+                // log an error or handle it, but don't use the raw line as a category.
+                console.warn("Skipping malformed Reflect 3 line:", line);
+                currentCategory = ''; // Reset or skip
             }
-            if (!parsedData.reflect[currentCategory]) {
-                parsedData.reflect[currentCategory] = [];
-            }
-        } else if (line.startsWith('Day ') || (line.startsWith('Unit ') && !line.includes("-R"))) { // Ensure "Unit X-RY" isn't treated as a new category here
+        } else if (line.startsWith('Day ') || (line.startsWith('Unit ') && !line.includes("-R"))) {
             currentCategory = line;
-            if (currentBook === 'voca' && line.startsWith('Day ')) {
+            if (currentCategory) { // Ensure currentCategory is not empty from a previous malformed line
+                if (currentBook === 'voca' && line.startsWith('Day ')) {
                 if (!parsedData.day[currentCategory]) {
                     parsedData.day[currentCategory] = [];
                 }
@@ -1086,23 +1090,31 @@ function parseVocaData(data) {
             if (parts.length >= 2) {
                 const word = parts[0].trim();
                 const meaning = parts.slice(1).join(':').trim();
-                if (currentBook === 'voca' && currentCategory.startsWith('Day ')) {
-                    if (parsedData.day[currentCategory]) {
-                        parsedData.day[currentCategory].push({ word, meaning });
+                if (currentCategory) { // Only add if currentCategory is valid
+                    if (currentBook === 'voca' && currentCategory.startsWith('Day ')) {
+                        if (parsedData.day[currentCategory]) {
+                            parsedData.day[currentCategory].push({ word, meaning });
+                        }
+                    } else if (currentBook === 'inko' && currentCategory.startsWith('Unit ')) {
+                         if (parsedData.unit[currentCategory]) {
+                            parsedData.unit[currentCategory].push({ word, meaning });
+                        }
+                    } else if (currentBook === 'reflect' && currentCategory.includes("-R")) {
+                        // Ensure currentCategory is a key that was initialized for reflect
+                        if (parsedData.reflect[currentCategory]) {
+                             parsedData.reflect[currentCategory].push({ word, meaning });
+                        } else if (currentCategory) { // If currentCategory was set by reflectMatch but array not init'd (should not happen with current logic)
+                            // This case should ideally not be reached if reflectMatch logic is correct
+                            // console.warn("Reflect category", currentCategory, "not initialized for word:", word);
+                        }
                     }
-                } else if (currentBook === 'inko' && currentCategory.startsWith('Unit ')) {
-                     if (parsedData.unit[currentCategory]) {
-                        parsedData.unit[currentCategory].push({ word, meaning });
-                    }
-                } else if (currentBook === 'reflect' && currentCategory.includes("-R")) {
-                    if (parsedData.reflect[currentCategory]) {
-                        parsedData.reflect[currentCategory].push({ word, meaning });
-                    }
+                } else {
+                    // console.warn("Skipping word due to no valid currentCategory:", line);
                 }
             }
         }
     });
-    // console.log("Parsed Data:", JSON.stringify(parsedData, null, 2));
+    // console.log("Parsed Data:", JSON.stringify(allWordsData, null, 2)); // DEBUG Parsed Data
     return parsedData;
 }
 
@@ -1111,42 +1123,44 @@ function parseVocaData(data) {
  * Populates the set number dropdown based on the selected set type.
  */
 function populateSetNumbers() {
-    const selectedType = setTypeSelect.value; // 'day' or 'unit'
-    setNumberSelect.innerHTML = ''; // Clear previous options
+    const selectedType = setTypeSelect.value;
+    setNumberSelect.innerHTML = '';
+    let categories = [];
 
-    let categories;
-    if (selectedType === 'day') {
-        categories = Object.keys(allWordsData.day).sort((a, b) => {
-            return parseInt(a.replace('Day ', '')) - parseInt(b.replace('Day ', ''));
-        });
+    if (selectedType === 'day' && allWordsData.day) {
+        categories = Object.keys(allWordsData.day).sort((a, b) => parseInt(a.replace('Day ', '')) - parseInt(b.replace('Day ', '')));
     } else if (selectedType === 'unit') {
-        // For 'unit', we combine 'inko' and 'reflect' units
-        const inkoUnits = Object.keys(allWordsData.unit).sort((a, b) => {
-            return parseInt(a.replace('Unit ', '')) - parseInt(b.replace('Unit ', ''));
-        });
-        const reflectUnits = Object.keys(allWordsData.reflect).sort((a, b) => {
-            // Format is "Unit X-RY"
+        const inkoUnits = allWordsData.unit ? Object.keys(allWordsData.unit).sort((a, b) => parseInt(a.replace('Unit ', '')) - parseInt(b.replace('Unit ', ''))) : [];
+        const reflectKeys = allWordsData.reflect ? Object.keys(allWordsData.reflect).sort((a, b) => {
             const [aUnitPart, aReadingPart] = a.split('-R');
             const [bUnitPart, bReadingPart] = b.split('-R');
             const aUnit = parseInt(aUnitPart.replace('Unit ', ''));
             const bUnit = parseInt(bUnitPart.replace('Unit ', ''));
-            const aReading = parseInt(aReadingPart);
-            const bReading = parseInt(bReadingPart);
-
-            if (aUnit === bUnit) {
-                return aReading - bReading;
-            }
+            // Handle cases where ReadingPart might be undefined if the key is not as expected.
+            const aReading = parseInt(aReadingPart || "0");
+            const bReading = parseInt(bReadingPart || "0");
+            if (aUnit === bUnit) return aReading - bReading;
             return aUnit - bUnit;
-        });
-        categories = [...inkoUnits, ...reflectUnits.map(u => `Reflect ${u}`)]; // Reflect Unit X-RY
+        }) : [];
+        // For display and value, use "Reflect Unit X-RY" for reflect units
+        categories = [...inkoUnits, ...reflectKeys.map(key => `Reflect ${key}`)];
     }
+    // console.log("Categories for dropdown:", categories); // DEBUG
 
     categories.forEach(categoryName => {
         const option = document.createElement('option');
-        option.value = categoryName; // Value will be "Day X", "Unit Y", or "Reflect Unit Z-RW"
+        option.value = categoryName;
         option.textContent = categoryName;
         setNumberSelect.appendChild(option);
     });
+
+    // If no categories, provide a default message option
+    if (categories.length === 0) {
+        const option = document.createElement('option');
+        option.textContent = "선택 가능한 세트 없음";
+        option.disabled = true;
+        setNumberSelect.appendChild(option);
+    }
 }
 
 
@@ -1177,26 +1191,38 @@ function initializeApp() {
 function startGame() {
     const selectedType = setTypeSelect.value;
     const selectedNumber = setNumberSelect.value;
+    // console.log("startGame triggered with type:", selectedType, "number:", selectedNumber); // DEBUG
 
-    if (!selectedNumber) {
+    if (!selectedNumber || selectedNumber === "선택 가능한 세트 없음") {
         alert("학습할 세트를 선택해주세요!");
         return;
     }
 
+    currentWordSet = []; // Reset currentWordSet
+
     if (selectedType === 'day') {
-        currentWordSet = allWordsData.day[selectedNumber] ? [...allWordsData.day[selectedNumber]] : [];
+        if (allWordsData.day && allWordsData.day[selectedNumber]) {
+            currentWordSet = [...allWordsData.day[selectedNumber]];
+        }
     } else if (selectedType === 'unit') {
         if (selectedNumber.startsWith('Reflect')) {
-            const reflectKey = selectedNumber.replace('Reflect ', '');
-            currentWordSet = allWordsData.reflect[reflectKey] ? [...allWordsData.reflect[reflectKey]] : [];
-        } else {
-            currentWordSet = allWordsData.unit[selectedNumber] ? [...allWordsData.unit[selectedNumber]] : [];
+            const reflectKey = selectedNumber.replace('Reflect ', ''); // This should give "Unit X-RY"
+            // console.log("Looking for Reflect key:", reflectKey); // DEBUG
+            if (allWordsData.reflect && allWordsData.reflect[reflectKey]) {
+                currentWordSet = [...allWordsData.reflect[reflectKey]];
+            }
+        } else { // Standard Inko Unit
+            if (allWordsData.unit && allWordsData.unit[selectedNumber]) {
+                currentWordSet = [...allWordsData.unit[selectedNumber]];
+            }
         }
     }
 
+    // console.log("currentWordSet after selection:", currentWordSet); // DEBUG
 
     if (!currentWordSet || currentWordSet.length === 0) {
-        alert("선택한 세트에 단어가 없습니다. 다시 확인해주세요.");
+        alert("선택한 세트에 단어가 없거나, 단어 목록을 불러오는 데 실패했습니다. 개발자 콘솔을 확인해주세요.");
+        console.error("Failed to load word set. Type:", selectedType, "Number/Key:", selectedNumber, "Parsed Data for reflect:", allWordsData.reflect);
         return;
     }
 
