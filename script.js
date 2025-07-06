@@ -1206,40 +1206,52 @@ function initializeApp() {
  * Starts the learning game with the selected word set.
  */
 function startGame() {
+    console.log("startGame function called"); // DEBUG: Function entry
     const selectedType = setTypeSelect.value;
     const selectedNumber = setNumberSelect.value;
-    // console.log("startGame triggered with type:", selectedType, "number:", selectedNumber); // DEBUG
+    console.log("startGame - Selected Type:", selectedType, "Selected Number:", selectedNumber); // DEBUG: Selected values
 
     if (!selectedNumber || selectedNumber === "선택 가능한 세트 없음") {
         alert("학습할 세트를 선택해주세요!");
+        console.log("startGame - Aborted: No set number selected."); // DEBUG
         return;
     }
 
     currentWordSet = []; // Reset currentWordSet
+    console.log("startGame - currentWordSet initialized as empty."); // DEBUG
 
     if (selectedType === 'day') {
         if (allWordsData.day && allWordsData.day[selectedNumber]) {
             currentWordSet = [...allWordsData.day[selectedNumber]];
+            console.log("startGame - Loaded Day set:", selectedNumber, "Word count:", currentWordSet.length); // DEBUG
+        } else {
+            console.error("startGame - Failed to load Day set. Day data or selectedNumber invalid.", allWordsData.day, selectedNumber); // DEBUG
         }
     } else if (selectedType === 'unit') {
         if (selectedNumber.startsWith('Reflect')) {
-            const reflectKey = selectedNumber.replace('Reflect ', ''); // This should give "Unit X-RY"
-            // console.log("Looking for Reflect key:", reflectKey); // DEBUG
+            const reflectKey = selectedNumber.replace('Reflect ', '');
+            console.log("startGame - Looking for Reflect key:", reflectKey); // DEBUG
             if (allWordsData.reflect && allWordsData.reflect[reflectKey]) {
                 currentWordSet = [...allWordsData.reflect[reflectKey]];
+                console.log("startGame - Loaded Reflect set:", reflectKey, "Word count:", currentWordSet.length); // DEBUG
+            } else {
+                console.error("startGame - Failed to load Reflect set. Reflect data or key invalid.", allWordsData.reflect, reflectKey); // DEBUG
             }
         } else { // Standard Inko Unit
             if (allWordsData.unit && allWordsData.unit[selectedNumber]) {
                 currentWordSet = [...allWordsData.unit[selectedNumber]];
+                console.log("startGame - Loaded Inko Unit set:", selectedNumber, "Word count:", currentWordSet.length); // DEBUG
+            } else {
+                console.error("startGame - Failed to load Inko Unit set. Unit data or selectedNumber invalid.", allWordsData.unit, selectedNumber); // DEBUG
             }
         }
     }
 
-    // console.log("currentWordSet after selection:", currentWordSet); // DEBUG
+    console.log("startGame - currentWordSet after attempting to load:", currentWordSet); // DEBUG
 
     if (!currentWordSet || currentWordSet.length === 0) {
         alert("선택한 세트에 단어가 없거나, 단어 목록을 불러오는 데 실패했습니다. 개발자 콘솔을 확인해주세요.");
-        console.error("Failed to load word set. Type:", selectedType, "Number/Key:", selectedNumber, "Parsed Data for reflect:", allWordsData.reflect);
+        console.error("startGame - Aborted: Failed to load word set or word set is empty. Type:", selectedType, "Number/Key:", selectedNumber);
         return;
     }
 
@@ -1257,16 +1269,23 @@ function startGame() {
     updateStatsDisplay();
     clearHistory();
     historyArea.style.display = 'none';
-
+    console.log("startGame - History area hidden."); // DEBUG
 
     selectionArea.style.display = 'none';
+    console.log("startGame - Selection area hidden."); // DEBUG
     flashcardArea.style.display = 'block';
+    console.log("startGame - Flashcard area shown."); // DEBUG
     progressArea.style.display = 'block';
+    console.log("startGame - Progress area shown."); // DEBUG
     reviewArea.style.display = 'none';
+    console.log("startGame - Review area hidden."); // DEBUG
 
     totalWordsSpan.textContent = currentWordSet.length; // For initial set
     currentReviewRoundTotal = 0; // Reset for review tracking
+    console.log("startGame - Total words for current set:", currentWordSet.length); // DEBUG
+
     displayNextWord();
+    console.log("startGame - Called displayNextWord(). Game should start now."); // DEBUG
 }
 
 // --- Global State (add this with other global states) ---
