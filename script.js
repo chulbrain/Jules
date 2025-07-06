@@ -1124,42 +1124,52 @@ function parseVocaData(data) {
  */
 function populateSetNumbers() {
     const selectedType = setTypeSelect.value;
+    console.log("populateSetNumbers called. Selected type:", selectedType); // DEBUG
     setNumberSelect.innerHTML = '';
     let categories = [];
 
     if (selectedType === 'day' && allWordsData.day) {
+        console.log("Populating for Day. Keys:", Object.keys(allWordsData.day)); // DEBUG
         categories = Object.keys(allWordsData.day).sort((a, b) => parseInt(a.replace('Day ', '')) - parseInt(b.replace('Day ', '')));
     } else if (selectedType === 'unit') {
-        const inkoUnits = allWordsData.unit ? Object.keys(allWordsData.unit).sort((a, b) => parseInt(a.replace('Unit ', '')) - parseInt(b.replace('Unit ', ''))) : [];
-        const reflectKeys = allWordsData.reflect ? Object.keys(allWordsData.reflect).sort((a, b) => {
-            const [aUnitPart, aReadingPart] = a.split('-R');
-            const [bUnitPart, bReadingPart] = b.split('-R');
-            const aUnit = parseInt(aUnitPart.replace('Unit ', ''));
-            const bUnit = parseInt(bUnitPart.replace('Unit ', ''));
-            // Handle cases where ReadingPart might be undefined if the key is not as expected.
-            const aReading = parseInt(aReadingPart || "0");
-            const bReading = parseInt(bReadingPart || "0");
-            if (aUnit === bUnit) return aReading - bReading;
-            return aUnit - bUnit;
-        }) : [];
-        // For display and value, use "Reflect Unit X-RY" for reflect units
+        console.log("Populating for Unit."); // DEBUG
+        const inkoUnits = (allWordsData.unit && Object.keys(allWordsData.unit).length > 0)
+                         ? Object.keys(allWordsData.unit).sort((a, b) => parseInt(a.replace('Unit ', '')) - parseInt(b.replace('Unit ', '')))
+                         : [];
+        console.log("Inko Units:", inkoUnits); // DEBUG
+
+        const reflectKeys = (allWordsData.reflect && Object.keys(allWordsData.reflect).length > 0)
+                          ? Object.keys(allWordsData.reflect).sort((a, b) => {
+                                const [aUnitPart, aReadingPart] = a.split('-R');
+                                const [bUnitPart, bReadingPart] = b.split('-R');
+                                const aUnit = parseInt(aUnitPart.replace('Unit ', ''));
+                                const bUnit = parseInt(bUnitPart.replace('Unit ', ''));
+                                const aReading = parseInt(aReadingPart || "0");
+                                const bReading = parseInt(bReadingPart || "0");
+                                if (aUnit === bUnit) return aReading - bReading;
+                                return aUnit - bUnit;
+                            })
+                          : [];
+        console.log("Reflect Keys (raw from allWordsData.reflect):", reflectKeys); // DEBUG
+
         categories = [...inkoUnits, ...reflectKeys.map(key => `Reflect ${key}`)];
     }
-    // console.log("Categories for dropdown:", categories); // DEBUG
 
-    categories.forEach(categoryName => {
-        const option = document.createElement('option');
-        option.value = categoryName;
-        option.textContent = categoryName;
-        setNumberSelect.appendChild(option);
-    });
+    console.log("Final categories for dropdown:", categories); // DEBUG
 
-    // If no categories, provide a default message option
-    if (categories.length === 0) {
+    if (categories.length > 0) {
+        categories.forEach(categoryName => {
+            const option = document.createElement('option');
+            option.value = categoryName;
+            option.textContent = categoryName;
+            setNumberSelect.appendChild(option);
+        });
+    } else {
         const option = document.createElement('option');
         option.textContent = "선택 가능한 세트 없음";
         option.disabled = true;
         setNumberSelect.appendChild(option);
+        console.log("No categories found, displaying '선택 가능한 세트 없음'"); // DEBUG
     }
 }
 
