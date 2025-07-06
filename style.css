@@ -1,0 +1,319 @@
+@import url('https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&family=Poor+Story&display=swap');
+
+body {
+    font-family: 'Poor Story', cursive;
+    background-color: #f0f8ff; /* AliceBlue */
+    color: #333;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+.container {
+    background-color: #fff;
+    padding: 20px 40px;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 800px;
+    text-align: center;
+}
+
+header h1 {
+    font-family: 'Nanum Pen Script', cursive;
+    font-size: 3em;
+    color: #ff6347; /* Tomato */
+    margin-bottom: 10px;
+    text-shadow: 2px 2px #ffd700; /* Gold */
+}
+
+.user-stats {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+    background-color: #fffacd; /* LemonChiffon */
+    padding: 10px;
+    border-radius: 10px;
+    border: 2px dashed #ffb6c1; /* LightPink */
+}
+
+.user-stats p {
+    margin: 5px 0;
+    font-size: 1.2em;
+    color: #4682b4; /* SteelBlue */
+}
+
+.selection-area h2 {
+    color: #32cd32; /* LimeGreen */
+    font-size: 1.8em;
+}
+
+.set-selector {
+    margin-bottom: 30px;
+    padding: 15px;
+    background-color: #e0ffff; /* LightCyan */
+    border-radius: 10px;
+    border: 2px solid #afeeee; /* PaleTurquoise */
+}
+
+.set-selector label {
+    margin: 0 10px;
+    font-size: 1.1em;
+}
+
+.set-selector select, .set-selector button {
+    padding: 10px 15px;
+    margin: 5px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-family: 'Poor Story', cursive;
+    font-size: 1em;
+}
+
+.set-selector button {
+    background-color: #4682b4; /* SteelBlue */
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.set-selector button:hover {
+    background-color: #5a9bd3; /* Lighter SteelBlue */
+}
+
+.flashcard-area {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #fff8dc; /* Cornsilk */
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+.flashcard {
+    background-color: #ffffff;
+    padding: 25px;
+    border-radius: 10px;
+    border: 3px dashed #ffb6c1; /* LightPink */
+}
+
+.word-meaning {
+    font-size: 1.8em;
+    color: #20b2aa; /* LightSeaGreen */
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f5fffa; /* MintCream */
+    border-radius: 8px;
+    min-height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#spell-input {
+    width: calc(100% - 40px);
+    padding: 12px;
+    margin-bottom: 20px;
+    border: 2px solid #add8e6; /* LightBlue */
+    border-radius: 8px;
+    font-size: 1.2em;
+    text-align: center;
+}
+
+.buttons button {
+    padding: 10px 20px;
+    margin: 5px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.buttons button:hover {
+    transform: scale(1.05);
+}
+
+#submit-answer-button {
+    background-color: #32cd32; /* LimeGreen */
+    color: white;
+}
+
+#hint-button {
+    background-color: #ffa500; /* Orange */
+    color: white;
+}
+
+#show-answer-button {
+    background-color: #dc143c; /* Crimson */
+    color: white;
+}
+
+#feedback-text {
+    margin-top: 15px;
+    font-size: 1.2em;
+    font-weight: bold;
+    min-height: 20px;
+}
+
+.feedback-correct {
+    color: #28a745; /* Green */
+}
+
+.feedback-incorrect {
+    color: #dc3545; /* Red */
+}
+
+.progress-area {
+    margin-top: 30px;
+    padding: 15px;
+    background-color: #f5f5f5; /* WhiteSmoke */
+    border-radius: 10px;
+}
+
+.progress-area h2 {
+    color: #8a2be2; /* BlueViolet */
+    font-size: 1.5em;
+}
+
+.progress-bar-container {
+    width: 100%;
+    background-color: #e0e0e0; /* Light gray */
+    border-radius: 10px;
+    margin-top: 10px;
+    height: 25px;
+}
+
+#progress-bar {
+    width: 0%;
+    height: 100%;
+    background-color: #4caf50; /* Green */
+    border-radius: 10px;
+    transition: width 0.5s ease-in-out;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.9em;
+}
+
+.history-area {
+    margin-top: 30px;
+    padding: 15px;
+    background-color: #fffaf0; /* FloralWhite */
+    border-radius: 10px;
+}
+
+.history-area h2 {
+    color: #d2691e; /* Chocolate */
+    font-size: 1.5em;
+}
+
+#history-list {
+    list-style-type: none;
+    padding: 0;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+#history-list li {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+    font-size: 1em;
+}
+
+#history-list li:last-child {
+    border-bottom: none;
+}
+
+.history-correct {
+    color: green;
+}
+
+.history-incorrect {
+    color: red;
+}
+
+.review-area {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #fffacd; /* LemonChiffon */
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+.review-area h2 {
+    color: #ff4500; /* OrangeRed */
+    font-size: 1.8em;
+}
+
+.review-flashcard {
+    /* Styles similar to .flashcard but can be tweaked for review context */
+    background-color: #ffffff;
+    padding: 25px;
+    border-radius: 10px;
+    border: 3px dashed #ff8c00; /* DarkOrange */
+}
+
+/* Fun animations for streak */
+.streak-effect {
+    animation: pop 0.5s ease-out;
+}
+
+@keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.points-gain-effect {
+    animation: sparkle 0.7s ease-out;
+    color: #ffd700; /* Gold, for sparkle effect */
+}
+
+@keyframes sparkle {
+    0%, 100% { opacity: 1; transform: translateY(0); }
+    50% { opacity: 0.8; transform: translateY(-10px) scale(1.1); }
+}
+
+
+footer {
+    margin-top: 40px;
+    font-size: 0.9em;
+    color: #777;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .container {
+        padding: 15px;
+    }
+    header h1 {
+        font-size: 2.2em;
+    }
+    .user-stats {
+        flex-direction: column;
+        align-items: center;
+    }
+    .set-selector {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .set-selector select, .set-selector button, .set-selector label {
+        margin: 8px 0;
+    }
+    .buttons button {
+        padding: 10px 15px;
+        font-size: 0.9em;
+    }
+    .word-meaning {
+        font-size: 1.5em;
+    }
+    #spell-input {
+        font-size: 1.1em;
+    }
+}
