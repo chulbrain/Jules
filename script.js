@@ -1045,21 +1045,28 @@ skim: 훑어보다, 스치듯 지나가다
  * ...
  */
 function parseVocaData(data) {
+    console.log("parseVocaData: Starting to parse VOCA_DATA.");
     const lines = data.trim().split('\n');
     let currentBook = '';
-    let currentCategoryKey = ''; // Use a more descriptive name
-    const parsedData = { day: {}, unit: {}, reflect: {} }; // Local object to build and return
+    let currentCategoryKey = '';
+    const parsedData = { day: {}, unit: {}, reflect: {} };
 
-    lines.forEach(line => {
+    lines.forEach((line, index) => {
         line = line.trim();
-        if (!line) return;
+        // console.log(`parseVocaData: Processing line ${index + 1}: "${line}"`); // Log each line
+        if (!line) {
+            // console.log("parseVocaData: Skipping empty line.");
+            return;
+        }
 
         if (line.toLowerCase().startsWith("let's voca 전체 단어")) {
             currentBook = 'voca';
-            currentCategoryKey = ''; // Reset category when book changes
+            currentCategoryKey = '';
+            console.log(`parseVocaData: Switched to book: ${currentBook}`);
         } else if (line.toLowerCase().startsWith("잉코북 전체 단어")) {
             currentBook = 'inko';
-            currentCategoryKey = ''; // Reset category when book changes
+            currentCategoryKey = '';
+            console.log(`parseVocaData: Switched to book: ${currentBook}`);
         } else if (line.toLowerCase().startsWith("reflect 3")) {
             currentBook = 'reflect';
             const reflectMatch = line.match(/Reflect 3 (Unit \d+) Reading (\d+)/);
@@ -1067,57 +1074,69 @@ function parseVocaData(data) {
                 currentCategoryKey = `${reflectMatch[1]}-R${reflectMatch[2]}`;
                 if (!parsedData.reflect[currentCategoryKey]) {
                     parsedData.reflect[currentCategoryKey] = [];
+                    console.log(`parseVocaData: Initialized reflect category: ${currentCategoryKey}`);
+                } else {
+                    // console.log(`parseVocaData: Reflect category ${currentCategoryKey} already exists.`);
                 }
             } else {
-                console.warn("Skipping malformed Reflect 3 line:", line);
-                currentCategoryKey = ''; // Invalid category, reset
+                console.warn(`parseVocaData: Malformed Reflect 3 line: "${line}". Resetting category.`);
+                currentCategoryKey = '';
             }
+            console.log(`parseVocaData: Switched to book: ${currentBook}, Category: ${currentCategoryKey}`);
         } else if (line.startsWith('Day ') || (line.startsWith('Unit ') && !line.includes("-R"))) {
-            // This line defines a new category (Day or Unit)
-            currentCategoryKey = line; // Set the new category key
+            currentCategoryKey = line;
+            console.log(`parseVocaData: New category key: ${currentCategoryKey} under book: ${currentBook}`);
             if (currentBook === 'voca' && currentCategoryKey.startsWith('Day ')) {
                 if (!parsedData.day[currentCategoryKey]) {
                     parsedData.day[currentCategoryKey] = [];
+                    console.log(`parseVocaData: Initialized voca day category: ${currentCategoryKey}`);
                 }
             } else if (currentBook === 'inko' && currentCategoryKey.startsWith('Unit ')) {
                  if (!parsedData.unit[currentCategoryKey]) {
                     parsedData.unit[currentCategoryKey] = [];
+                    console.log(`parseVocaData: Initialized inko unit category: ${currentCategoryKey}`);
                 }
-            } else if (currentBook === 'reflect' && currentCategoryKey.startsWith('Unit ')) {
-                // This case should ideally not happen if Reflect units are always defined by "Reflect 3..." line
-                // However, if a "Unit X" line appears under "reflect" book without "Reflect 3..." prefix,
-                // it might be an error in data or requires different handling.
-                // For now, we assume Reflect units are defined by "Reflect 3..." lines.
-                // If currentCategoryKey was from a Reflect line (e.g. "Unit X-RY"), it's already handled.
-                // This path is more for "Unit X" lines appearing unexpectedly under 'reflect' book.
-                // console.warn(`Unexpected Unit line '${currentCategoryKey}' under book '${currentBook}'.`);
+            } else {
+                 // This case indicates a "Day " or "Unit " line appeared under an unexpected currentBook (e.g. Reflect)
+                 // or currentCategoryKey was from a Reflect line (e.g. "Unit X-RY") which should not happen here.
+                 console.warn(`parseVocaData: Category line "${currentCategoryKey}" found under unexpected book "${currentBook}".`);
             }
         } else { // This is a word line
             const parts = line.split(':');
             if (parts.length >= 2) {
                 const word = parts[0].trim();
                 const meaning = parts.slice(1).join(':').trim();
+                // console.log(`parseVocaData: Attempting to add word: "${word}" to category: "${currentCategoryKey}" in book: "${currentBook}"`);
 
-                if (currentCategoryKey) { // Ensure there's a valid category to add to
+                if (currentCategoryKey) {
+                    let targetArray = null;
                     if (currentBook === 'voca' && parsedData.day[currentCategoryKey]) {
-                        parsedData.day[currentCategoryKey].push({ word, meaning });
+                        targetArray = parsedData.day[currentCategoryKey];
                     } else if (currentBook === 'inko' && parsedData.unit[currentCategoryKey]) {
-                        parsedData.unit[currentCategoryKey].push({ word, meaning });
+                        targetArray = parsedData.unit[currentCategoryKey];
                     } else if (currentBook === 'reflect' && parsedData.reflect[currentCategoryKey]) {
-                         parsedData.reflect[currentCategoryKey].push({ word, meaning });
+                         targetArray = parsedData.reflect[currentCategoryKey];
+                    }
+
+                    if (targetArray) {
+                        targetArray.push({ word, meaning });
+                        // console.log(`parseVocaData: Added word "${word}" to ${currentBook}.${currentCategoryKey}. Count: ${targetArray.length}`);
                     } else {
-                        // This means currentCategoryKey is set, but the corresponding array in parsedData wasn't initialized.
-                        // This can happen if a word line appears before its category is properly defined or if categoryKey is wrong.
-                        // console.warn(`Category array for '${currentCategoryKey}' in book '${currentBook}' not found for word '${word}'. Word skipped.`);
+                         console.warn(`parseVocaData: Target array for category "${currentCategoryKey}" in book "${currentBook}" not found or not initialized. Word "${word}" skipped. Line: "${line}"`);
                     }
                 } else {
-                    // console.warn(`No valid category for word line: '${line}'. Word '${word}' skipped.`);
+                     console.warn(`parseVocaData: No valid category for word line: "${line}". Word "${word}" skipped.`);
                 }
             }
         }
     });
-    // console.log("Final Parsed Data (to be returned):", JSON.stringify(parsedData, null, 2));
-    return parsedData; // Return the locally built object
+                }
+            }
+        }
+    });
+    console.log("parseVocaData: Finished parsing. Returning parsedData.");
+    // console.log("Final Parsed Data (to be returned by parseVocaData):", JSON.stringify(parsedData, null, 2)); // Uncomment for very detailed output
+    return parsedData;
 }
 
 
@@ -1184,6 +1203,7 @@ function populateSetNumbers() {
  * Initializes the application.
  */
 function initializeApp() {
+    checkDOMReferences(); // Call at the beginning
     allWordsData = parseVocaData(VOCA_DATA);
     console.log("Data parsed. Initial allWordsData for app:", JSON.parse(JSON.stringify(allWordsData))); // DEBUG: Check after parseVocaData
     populateSetNumbers(); // Initial population for "Day"
@@ -1191,6 +1211,7 @@ function initializeApp() {
     // Event Listeners
     setTypeSelect.addEventListener('change', populateSetNumbers);
     startButton.addEventListener('click', startGame);
+    console.log("initializeApp: Start button event listener added. Button element:", startButton); // DEBUG
     submitAnswerButton.addEventListener('click', checkAnswer);
     hintButton.addEventListener('click', showHint);
     showAnswerButton.addEventListener('click', showAnswer);
@@ -1269,23 +1290,30 @@ function startGame() {
     updateStatsDisplay();
     clearHistory();
     historyArea.style.display = 'none';
-    console.log("startGame - History area hidden."); // DEBUG
+    console.log("startGame - History area hidden.");
 
-    selectionArea.style.display = 'none';
-    console.log("startGame - Selection area hidden."); // DEBUG
-    flashcardArea.style.display = 'block';
-    console.log("startGame - Flashcard area shown."); // DEBUG
-    progressArea.style.display = 'block';
-    console.log("startGame - Progress area shown."); // DEBUG
+    // --- UI 변경 ---
+    console.log("startGame - About to change UI. selectionArea:", selectionArea, "flashcardArea:", flashcardArea); // DEBUG DOM elements
+    if (selectionArea) selectionArea.style.display = 'none';
+    else console.error("startGame - selectionArea is null!");
+    console.log("startGame - Selection area hidden (attempted).");
+
+    if (flashcardArea) flashcardArea.style.display = 'block';
+    else console.error("startGame - flashcardArea is null!");
+    console.log("startGame - Flashcard area shown (attempted).");
+
+    if (progressArea) progressArea.style.display = 'block';
+    else console.error("startGame - progressArea is null!");
+    console.log("startGame - Progress area shown (attempted).");
     reviewArea.style.display = 'none';
-    console.log("startGame - Review area hidden."); // DEBUG
+    console.log("startGame - Review area hidden.");
 
-    totalWordsSpan.textContent = currentWordSet.length; // For initial set
-    currentReviewRoundTotal = 0; // Reset for review tracking
-    console.log("startGame - Total words for current set:", currentWordSet.length); // DEBUG
+    totalWordsSpan.textContent = currentWordSet.length;
+    currentReviewRoundTotal = 0;
+    console.log("startGame - Total words for current set:", currentWordSet.length);
 
     displayNextWord();
-    console.log("startGame - Called displayNextWord(). Game should start now."); // DEBUG
+    console.log("startGame - Called displayNextWord(). Game should start now.");
 }
 
 // --- Global State (add this with other global states) ---
@@ -1621,3 +1649,31 @@ function showTemporaryEffect(element, message, effectClass) {
 
 // --- Initialize ---
 document.addEventListener('DOMContentLoaded', initializeApp);
+
+// --- Helper function to check DOM references ---
+function checkDOMReferences() {
+    console.log("--- Checking DOM Element References ---");
+    if (!setTypeSelect) console.error("DOM Error: setTypeSelect is null");
+    if (!setNumberSelect) console.error("DOM Error: setNumberSelect is null");
+    if (!startButton) console.error("DOM Error: startButton is null");
+    if (!flashcardArea) console.error("DOM Error: flashcardArea is null");
+    if (!meaningText) console.error("DOM Error: meaningText is null");
+    if (!spellInput) console.error("DOM Error: spellInput is null");
+    if (!submitAnswerButton) console.error("DOM Error: submitAnswerButton is null");
+    if (!hintButton) console.error("DOM Error: hintButton is null");
+    if (!showAnswerButton) console.error("DOM Error: showAnswerButton is null");
+    if (!feedbackText) console.error("DOM Error: feedbackText is null");
+    if (!pointsSpan) console.error("DOM Error: pointsSpan is null");
+    if (!streakSpan) console.error("DOM Error: streakSpan is null");
+    if (!totalWordsSpan) console.error("DOM Error: totalWordsSpan is null");
+    if (!correctWordsSpan) console.error("DOM Error: correctWordsSpan is null");
+    if (!incorrectWordsSpan) console.error("DOM Error: incorrectWordsSpan is null");
+    if (!progressBar) console.error("DOM Error: progressBar is null");
+    if (!historyList) console.error("DOM Error: historyList is null");
+    if (!historyArea) console.error("DOM Error: historyArea is null");
+    if (!reviewArea) console.error("DOM Error: reviewArea is null");
+    if (!reviewFlashcardDiv) console.error("DOM Error: reviewFlashcardDiv is null");
+    if (!selectionArea) console.error("DOM Error: selectionArea is null");
+    if (!progressArea) console.error("DOM Error: progressArea is null");
+    console.log("--- Finished Checking DOM Element References ---");
+}
