@@ -1045,28 +1045,31 @@ skim: 훑어보다, 스치듯 지나가다
  * ...
  */
 function parseVocaData(data) {
-    console.log("parseVocaData: Starting to parse VOCA_DATA.");
+    console.log("=========================================");
+    console.log("parseVocaData: START - Parsing VOCA_DATA");
+    console.log("=========================================");
     const lines = data.trim().split('\n');
     let currentBook = '';
     let currentCategoryKey = '';
-    const parsedData = { day: {}, unit: {}, reflect: {} };
+    const parsedData = { day: {}, unit: {}, reflect: {} }; // 최종 반환될 객체
 
     lines.forEach((line, index) => {
         line = line.trim();
-        // console.log(`parseVocaData: Processing line ${index + 1}: "${line}"`); // Log each line
+        const logPrefix = `L${index + 1}: "${line.substring(0, 50)}${line.length > 50 ? '...' : ''}" | Book: ${currentBook}, CatKey: ${currentCategoryKey} |`;
+
         if (!line) {
-            // console.log("parseVocaData: Skipping empty line.");
+            // console.log(logPrefix, "Skipping empty line.");
             return;
         }
 
         if (line.toLowerCase().startsWith("let's voca 전체 단어")) {
             currentBook = 'voca';
             currentCategoryKey = '';
-            console.log(`parseVocaData: Switched to book: ${currentBook}`);
+            console.log(logPrefix, `SET currentBook = 'voca'. Reset currentCategoryKey.`);
         } else if (line.toLowerCase().startsWith("잉코북 전체 단어")) {
             currentBook = 'inko';
             currentCategoryKey = '';
-            console.log(`parseVocaData: Switched to book: ${currentBook}`);
+            console.log(logPrefix, `SET currentBook = 'inko'. Reset currentCategoryKey.`);
         } else if (line.toLowerCase().startsWith("reflect 3")) {
             currentBook = 'reflect';
             const reflectMatch = line.match(/Reflect 3 (Unit \d+) Reading (\d+)/);
@@ -1074,58 +1077,59 @@ function parseVocaData(data) {
                 currentCategoryKey = `${reflectMatch[1]}-R${reflectMatch[2]}`;
                 if (!parsedData.reflect[currentCategoryKey]) {
                     parsedData.reflect[currentCategoryKey] = [];
-                    console.log(`parseVocaData: Initialized reflect category: ${currentCategoryKey}`);
+                    console.log(logPrefix, `NEW Reflect Category: '${currentCategoryKey}'. Initialized parsedData.reflect['${currentCategoryKey}'] = []`);
                 } else {
-                    // console.log(`parseVocaData: Reflect category ${currentCategoryKey} already exists.`);
+                    // console.log(logPrefix, `EXISTING Reflect Category: '${currentCategoryKey}'.`);
                 }
             } else {
-                console.warn(`parseVocaData: Malformed Reflect 3 line: "${line}". Resetting category.`);
+                console.warn(logPrefix, `WARN - Malformed Reflect 3 line. Resetting currentCategoryKey.`);
                 currentCategoryKey = '';
             }
-            console.log(`parseVocaData: Switched to book: ${currentBook}, Category: ${currentCategoryKey}`);
         } else if (line.startsWith('Day ') || (line.startsWith('Unit ') && !line.includes("-R"))) {
             currentCategoryKey = line;
-            console.log(`parseVocaData: New category key: ${currentCategoryKey} under book: ${currentBook}`);
+            console.log(logPrefix, `SET Category Key: '${currentCategoryKey}' for book '${currentBook}'`);
             if (currentBook === 'voca' && currentCategoryKey.startsWith('Day ')) {
                 if (!parsedData.day[currentCategoryKey]) {
                     parsedData.day[currentCategoryKey] = [];
-                    console.log(`parseVocaData: Initialized voca day category: ${currentCategoryKey}`);
+                    console.log(logPrefix, `NEW Voca Day Category: '${currentCategoryKey}'. Initialized parsedData.day['${currentCategoryKey}'] = []`);
                 }
             } else if (currentBook === 'inko' && currentCategoryKey.startsWith('Unit ')) {
                  if (!parsedData.unit[currentCategoryKey]) {
                     parsedData.unit[currentCategoryKey] = [];
-                    console.log(`parseVocaData: Initialized inko unit category: ${currentCategoryKey}`);
+                    console.log(logPrefix, `NEW Inko Unit Category: '${currentCategoryKey}'. Initialized parsedData.unit['${currentCategoryKey}'] = []`);
                 }
             } else {
-                 // This case indicates a "Day " or "Unit " line appeared under an unexpected currentBook (e.g. Reflect)
-                 // or currentCategoryKey was from a Reflect line (e.g. "Unit X-RY") which should not happen here.
-                 console.warn(`parseVocaData: Category line "${currentCategoryKey}" found under unexpected book "${currentBook}".`);
+                 console.warn(logPrefix, `WARN - Category line '${currentCategoryKey}' found under unexpected book '${currentBook}' or invalid format.`);
             }
-        } else { // This is a word line
+        } else { // 단어 라인
             const parts = line.split(':');
             if (parts.length >= 2) {
                 const word = parts[0].trim();
                 const meaning = parts.slice(1).join(':').trim();
-                // console.log(`parseVocaData: Attempting to add word: "${word}" to category: "${currentCategoryKey}" in book: "${currentBook}"`);
 
-                if (currentCategoryKey) {
+                if (currentCategoryKey && currentBook) {
                     let targetArray = null;
+                    let categoryTypeForLog = '';
+
                     if (currentBook === 'voca' && parsedData.day[currentCategoryKey]) {
                         targetArray = parsedData.day[currentCategoryKey];
+                        categoryTypeForLog = 'voca.day';
                     } else if (currentBook === 'inko' && parsedData.unit[currentCategoryKey]) {
                         targetArray = parsedData.unit[currentCategoryKey];
+                        categoryTypeForLog = 'inko.unit';
                     } else if (currentBook === 'reflect' && parsedData.reflect[currentCategoryKey]) {
                          targetArray = parsedData.reflect[currentCategoryKey];
+                         categoryTypeForLog = 'reflect.reflect';
                     }
 
                     if (targetArray) {
                         targetArray.push({ word, meaning });
-                        // console.log(`parseVocaData: Added word "${word}" to ${currentBook}.${currentCategoryKey}. Count: ${targetArray.length}`);
+                        // console.log(logPrefix, `ADD Word: '${word}' to ${categoryTypeForLog}['${currentCategoryKey}']. New length: ${targetArray.length}`);
                     } else {
-                         console.warn(`parseVocaData: Target array for category "${currentCategoryKey}" in book "${currentBook}" not found or not initialized. Word "${word}" skipped. Line: "${line}"`);
+                         console.warn(logPrefix, `WARN - Target array for category '${currentCategoryKey}' in book '${currentBook}' NOT FOUND or NOT INITIALIZED. Word '${word}' SKIPPED.`);
                     }
                 } else {
-                     console.warn(`parseVocaData: No valid category for word line: "${line}". Word "${word}" skipped.`);
+                     console.warn(logPrefix, `WARN - No valid currentCategoryKey ('${currentCategoryKey}') or currentBook ('${currentBook}') for word line. Word '${parts[0].trim()}' SKIPPED.`);
                 }
             }
         }
@@ -1134,8 +1138,22 @@ function parseVocaData(data) {
             }
         }
     });
-    console.log("parseVocaData: Finished parsing. Returning parsedData.");
-    // console.log("Final Parsed Data (to be returned by parseVocaData):", JSON.stringify(parsedData, null, 2)); // Uncomment for very detailed output
+                }
+            } else {
+                console.warn(logPrefix, `WARN - Line does not seem to be a word:meaning pair. SKIPPED.`);
+            }
+        }
+    });
+
+    console.log("=========================================");
+    console.log("parseVocaData: FINISHED - Parsing VOCA_DATA");
+    // 다음은 최종 생성된 parsedData의 요약 정보입니다.
+    console.log("parseVocaData: Summary of parsedData:");
+    console.log("  Day keys:", Object.keys(parsedData.day));
+    console.log("  Unit keys:", Object.keys(parsedData.unit));
+    console.log("  Reflect keys:", Object.keys(parsedData.reflect));
+    // console.log("Full parsedData (to be returned):", JSON.stringify(parsedData)); // 필요시 매우 상세한 전체 객체 출력
+    console.log("=========================================");
     return parsedData;
 }
 
@@ -1145,23 +1163,39 @@ function parseVocaData(data) {
  */
 function populateSetNumbers() {
     const selectedType = setTypeSelect.value;
-    console.log("populateSetNumbers called. Selected type:", selectedType);
-    console.log("Current allWordsData state at populateSetNumbers start:", JSON.parse(JSON.stringify(allWordsData))); // Deep copy for logging
+function populateSetNumbers() {
+    const selectedType = setTypeSelect.value;
+    console.log(`populateSetNumbers: Called. Selected type: "${selectedType}"`);
+
+    // Log the state of allWordsData to ensure it's consistent
+    // Using a sample of keys or lengths to avoid overly verbose logs if stringify is too much
+    let awdSummary = "allWordsData content summary: ";
+    if (allWordsData && allWordsData.day) awdSummary += `Day keys: ${Object.keys(allWordsData.day).length}, `;
+    else awdSummary += "Day: (empty or undefined), ";
+    if (allWordsData && allWordsData.unit) awdSummary += `Unit keys: ${Object.keys(allWordsData.unit).length}, `;
+    else awdSummary += "Unit: (empty or undefined), ";
+    if (allWordsData && allWordsData.reflect) awdSummary += `Reflect keys: ${Object.keys(allWordsData.reflect).length}`;
+    else awdSummary += "Reflect: (empty or undefined)";
+    console.log(`populateSetNumbers: ${awdSummary}`);
 
     setNumberSelect.innerHTML = '';
     let categories = [];
 
-    if (selectedType === 'day' && allWordsData.day) {
-        console.log("Populating for Day. Available Day keys:", Object.keys(allWordsData.day));
-        categories = Object.keys(allWordsData.day).sort((a, b) => parseInt(a.replace('Day ', '')) - parseInt(b.replace('Day ', '')));
+    if (selectedType === 'day') {
+        if (allWordsData && allWordsData.day && Object.keys(allWordsData.day).length > 0) {
+            console.log("populateSetNumbers: Populating for Day. Available Day keys:", Object.keys(allWordsData.day));
+            categories = Object.keys(allWordsData.day).sort((a, b) => parseInt(a.replace('Day ', '')) - parseInt(b.replace('Day ', '')));
+        } else {
+            console.warn("populateSetNumbers: No Day categories found in allWordsData.day or allWordsData.day is undefined/empty.");
+        }
     } else if (selectedType === 'unit') {
-        console.log("Populating for Unit.");
-        const inkoUnits = (allWordsData.unit && Object.keys(allWordsData.unit).length > 0)
+        console.log("populateSetNumbers: Populating for Unit.");
+        const inkoUnits = (allWordsData && allWordsData.unit && Object.keys(allWordsData.unit).length > 0)
                          ? Object.keys(allWordsData.unit).sort((a, b) => parseInt(a.replace('Unit ', '')) - parseInt(b.replace('Unit ', '')))
                          : [];
-        console.log("Inko Units found:", inkoUnits);
+        console.log("populateSetNumbers: Inko Units found:", inkoUnits);
 
-        const reflectKeys = (allWordsData.reflect && Object.keys(allWordsData.reflect).length > 0)
+        const reflectKeys = (allWordsData && allWordsData.reflect && Object.keys(allWordsData.reflect).length > 0)
                           ? Object.keys(allWordsData.reflect).sort((a, b) => {
                                 const [aUnitPart, aReadingPart] = a.split('-R');
                                 const [bUnitPart, bReadingPart] = b.split('-R');
@@ -1173,12 +1207,12 @@ function populateSetNumbers() {
                                 return aUnit - bUnit;
                             })
                           : [];
-        console.log("Reflect Keys (raw from allWordsData.reflect) found:", reflectKeys);
+        console.log("populateSetNumbers: Reflect Keys (raw from allWordsData.reflect) found:", reflectKeys);
 
         categories = [...inkoUnits, ...reflectKeys.map(key => `Reflect ${key}`)];
     }
 
-    console.log("Final categories determined for dropdown:", categories);
+    console.log("populateSetNumbers: Final categories determined for dropdown:", categories);
 
     if (categories.length > 0) {
         categories.forEach(categoryName => {
@@ -1186,16 +1220,15 @@ function populateSetNumbers() {
             option.value = categoryName;
             option.textContent = categoryName;
             setNumberSelect.appendChild(option);
-            // console.log("Appended option:", categoryName, "to setNumberSelect. Current innerHTML:", setNumberSelect.innerHTML); // DEBUG: Can be very verbose
         });
     } else {
         const option = document.createElement('option');
         option.textContent = "선택 가능한 세트 없음";
         option.disabled = true;
         setNumberSelect.appendChild(option);
-        console.log("No categories found. Appended '선택 가능한 세트 없음'.");
+        console.log("populateSetNumbers: No categories found. Appended '선택 가능한 세트 없음'.");
     }
-    console.log("setNumberSelect final innerHTML after population:", setNumberSelect.innerHTML); // DEBUG
+    console.log("populateSetNumbers: setNumberSelect final innerHTML after population:", setNumberSelect.innerHTML);
 }
 
 
@@ -1203,15 +1236,19 @@ function populateSetNumbers() {
  * Initializes the application.
  */
 function initializeApp() {
-    checkDOMReferences(); // Call at the beginning
+    checkDOMReferences();
+
+    console.log("initializeApp: Calling parseVocaData...");
     allWordsData = parseVocaData(VOCA_DATA);
-    console.log("Data parsed. Initial allWordsData for app:", JSON.parse(JSON.stringify(allWordsData))); // DEBUG: Check after parseVocaData
-    populateSetNumbers(); // Initial population for "Day"
+    console.log("initializeApp: Data parsed. Initial allWordsData for app:", JSON.parse(JSON.stringify(allWordsData)));
+
+    console.log("initializeApp: Calling populateSetNumbers for initial setup (Day)...");
+    populateSetNumbers();
 
     // Event Listeners
     setTypeSelect.addEventListener('change', populateSetNumbers);
     startButton.addEventListener('click', startGame);
-    console.log("initializeApp: Start button event listener added. Button element:", startButton); // DEBUG
+    console.log("initializeApp: Start button event listener added. Button element:", startButton);
     submitAnswerButton.addEventListener('click', checkAnswer);
     hintButton.addEventListener('click', showHint);
     showAnswerButton.addEventListener('click', showAnswer);
@@ -1226,49 +1263,55 @@ function initializeApp() {
 /**
  * Starts the learning game with the selected word set.
  */
+function getAWDStatusSummary(awd) { // Helper function for logging allWordsData status
+    if (!awd) return "allWordsData is null or undefined";
+    return `Day keys: ${awd.day ? Object.keys(awd.day).length : 'N/A'}, Unit keys: ${awd.unit ? Object.keys(awd.unit).length : 'N/A'}, Reflect keys: ${awd.reflect ? Object.keys(awd.reflect).length : 'N/A'}`;
+}
+
 function startGame() {
-    console.log("startGame function called"); // DEBUG: Function entry
+    console.log("startGame function called");
     const selectedType = setTypeSelect.value;
     const selectedNumber = setNumberSelect.value;
-    console.log("startGame - Selected Type:", selectedType, "Selected Number:", selectedNumber); // DEBUG: Selected values
+    console.log("startGame - Selected Type:", selectedType, "Selected Number:", selectedNumber);
+    console.log("startGame - Current allWordsData status:", getAWDStatusSummary(allWordsData)); // Log allWordsData status
 
     if (!selectedNumber || selectedNumber === "선택 가능한 세트 없음") {
         alert("학습할 세트를 선택해주세요!");
-        console.log("startGame - Aborted: No set number selected."); // DEBUG
+        console.log("startGame - Aborted: No set number selected.");
         return;
     }
 
-    currentWordSet = []; // Reset currentWordSet
-    console.log("startGame - currentWordSet initialized as empty."); // DEBUG
+    currentWordSet = [];
+    console.log("startGame - currentWordSet initialized as empty.");
 
     if (selectedType === 'day') {
-        if (allWordsData.day && allWordsData.day[selectedNumber]) {
+        if (allWordsData && allWordsData.day && allWordsData.day[selectedNumber]) { // Added allWordsData check
             currentWordSet = [...allWordsData.day[selectedNumber]];
-            console.log("startGame - Loaded Day set:", selectedNumber, "Word count:", currentWordSet.length); // DEBUG
+            console.log("startGame - Loaded Day set:", selectedNumber, "Word count:", currentWordSet.length);
         } else {
-            console.error("startGame - Failed to load Day set. Day data or selectedNumber invalid.", allWordsData.day, selectedNumber); // DEBUG
+            console.error("startGame - Failed to load Day set. allWordsData, allWordsData.day or selectedNumber invalid/missing.", selectedNumber, allWordsData && allWordsData.day);
         }
     } else if (selectedType === 'unit') {
         if (selectedNumber.startsWith('Reflect')) {
             const reflectKey = selectedNumber.replace('Reflect ', '');
-            console.log("startGame - Looking for Reflect key:", reflectKey); // DEBUG
-            if (allWordsData.reflect && allWordsData.reflect[reflectKey]) {
+            console.log("startGame - Looking for Reflect key:", reflectKey);
+            if (allWordsData && allWordsData.reflect && allWordsData.reflect[reflectKey]) { // Added allWordsData check
                 currentWordSet = [...allWordsData.reflect[reflectKey]];
-                console.log("startGame - Loaded Reflect set:", reflectKey, "Word count:", currentWordSet.length); // DEBUG
+                console.log("startGame - Loaded Reflect set:", reflectKey, "Word count:", currentWordSet.length);
             } else {
-                console.error("startGame - Failed to load Reflect set. Reflect data or key invalid.", allWordsData.reflect, reflectKey); // DEBUG
+                console.error("startGame - Failed to load Reflect set. allWordsData, allWordsData.reflect or key invalid/missing.", reflectKey, allWordsData && allWordsData.reflect);
             }
         } else { // Standard Inko Unit
-            if (allWordsData.unit && allWordsData.unit[selectedNumber]) {
+            if (allWordsData && allWordsData.unit && allWordsData.unit[selectedNumber]) { // Added allWordsData check
                 currentWordSet = [...allWordsData.unit[selectedNumber]];
-                console.log("startGame - Loaded Inko Unit set:", selectedNumber, "Word count:", currentWordSet.length); // DEBUG
+                console.log("startGame - Loaded Inko Unit set:", selectedNumber, "Word count:", currentWordSet.length);
             } else {
-                console.error("startGame - Failed to load Inko Unit set. Unit data or selectedNumber invalid.", allWordsData.unit, selectedNumber); // DEBUG
+                console.error("startGame - Failed to load Inko Unit set. allWordsData, allWordsData.unit or selectedNumber invalid/missing.", selectedNumber, allWordsData && allWordsData.unit);
             }
         }
     }
 
-    console.log("startGame - currentWordSet after attempting to load:", currentWordSet); // DEBUG
+    console.log("startGame - currentWordSet after attempting to load:", currentWordSet);
 
     if (!currentWordSet || currentWordSet.length === 0) {
         alert("선택한 세트에 단어가 없거나, 단어 목록을 불러오는 데 실패했습니다. 개발자 콘솔을 확인해주세요.");
