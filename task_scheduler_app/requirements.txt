@@ -4,3 +4,9 @@ SQLAlchemy
 google-api-python-client
 google-auth-httplib2
 google-auth-oauthlib
+langchain>=0.1.0
+langchain-experimental>=0.0.45
+langchain-openai>=0.1.0
+python-dotenv>=1.0.0
+pyvis>=0.3.2
+streamlit>=1.32.0

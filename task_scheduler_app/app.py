@@ -872,7 +872,29 @@ def update_task_rule_submit_route(rule_id):
     
     return redirect(url_for('view_template', template_id=rule.template_id))
 
+from generate_knowledge_graph import generate_knowledge_graph
+
+@app.route('/knowledge_graph', methods=['GET', 'POST'])
+def knowledge_graph():
+    if 'user_id' not in session:
+        flash("로그인이 필요합니다.", "warning")
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        text = request.form.get('text')
+        if text:
+            output_filename = f"knowledge_graph_{session['user_id']}.html"
+            output_path = os.path.join(app.static_folder, output_filename)
+            generate_knowledge_graph(text, output_path)
+            return render_template('knowledge_graph.html', graph_file=output_filename)
+        else:
+            flash("Please enter text to generate a knowledge graph.", "danger")
+
+    return render_template('knowledge_graph.html', graph_file=None)
+
 if __name__ == '__main__':
+    print("Starting application...")
     with app.app_context():
         db.create_all()
+    print("Database created, running app...")
     app.run(debug=True)

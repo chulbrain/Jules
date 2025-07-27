@@ -22,7 +22,7 @@
 
     {% if session.email %}
         <p>로그인됨: {{ session.email }} (<a href="{{ url_for('logout') }}">로그아웃</a>)</p>
-        <p><a href="{{ url_for('new_template') }}">새 템플릿 만들기</a></p>
+        <p><a href="{{ url_for('new_template') }}">새 템플릿 만들기</a> | <a href="{{ url_for('knowledge_graph') }}">Knowledge Graph</a></p>
         <h2>템플릿 목록</h2>
         {% if templates %}
             <ul>
